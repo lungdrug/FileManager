@@ -6,30 +6,10 @@
     <title>Website with Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #000;
-            color: #fff;
-            overflow-x: hidden;
-        }
-        @keyframes typing {
-            from { width: 0; }
-            to { width: 100%; }
-        }
-        @keyframes blink-caret {
-            from, to { border-color: transparent; }
-            50% { border-color: #ffffff; }
-        }
-        .logo {
-            font-size: 1.5em;
-            white-space: nowrap;
-            overflow: hidden;
-            border-right: .15em solid #ffffff;
-            animation: typing 4s steps(30, end), blink-caret .75s step-end infinite;
-        }
-        .login-container, .content-container {
+        /* Your existing CSS styles */
+        /* Additional CSS for admin menu */
+        .admin-menu {
+            display: none;
             max-width: 400px;
             margin: 20px auto;
             padding: 20px;
@@ -38,10 +18,10 @@
             box-shadow: 0 0 10px #ffffff;
             animation: fadeIn 1s ease-in-out;
         }
-        .login-container input[type="text"],
-        .login-container input[type="password"],
-        .content-container input[type="text"],
-        .content-container input[type="password"] {
+        .admin-menu h2 {
+            margin-bottom: 20px;
+        }
+        .admin-menu input[type="text"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -50,10 +30,9 @@
             background-color: #1c1c1c;
             color: #fff;
             transition: all 0.3s ease;
-            box-sizing: border-box; /* Ensure input elements are inside the border */
+            box-sizing: border-box;
         }
-        .login-container input[type="submit"],
-        .content-container input[type="submit"], .content-container input[type="search"] {
+        .admin-menu button {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -63,154 +42,10 @@
             color: #000;
             font-weight: bold;
             cursor: pointer;
-            overflow: hidden;
-            position: relative;
             transition: background-color 0.3s ease;
-            box-sizing: border-box; /* Ensure input elements are inside the border */
         }
-        .login-container input[type="submit"]:hover,
-        .content-container input[type="submit"]:hover {
+        .admin-menu button:hover {
             background-color: #cccccc;
-        }
-        .login-container input[type="checkbox"] {
-            margin-right: 10px;
-        }
-        .status-message {
-            text-align: center;
-            margin: 20px 0;
-            color: #ffffff;
-            animation: fadeIn 1s ease-in-out;
-        }
-        .welcome-message {
-            text-align: center;
-            margin: 20px 0;
-            color: #ffffff;
-            font-size: 1.2em;
-            animation: fadeIn 1s ease-in-out;
-        }
-        .folder-link, .document-link, .back-button {
-            display: block;
-            margin: 10px 0;
-            color: #ffffff;
-            text-decoration: none;
-            font-weight: bold;
-            transition: transform 0.3s, color 0.3s;
-            cursor: pointer;
-            word-wrap: break-word; /* Ensure file names wrap if they leave the border */
-        }
-        .folder-link:hover, .document-link:hover, .back-button:hover {
-            text-decoration: underline;
-            transform: scale(1.1);
-            color: #cccccc;
-        }
-        .rain {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 1;
-            background: url('rain.png') repeat top center;
-            animation: rain 0.5s linear infinite;
-        }
-        @keyframes rain {
-            0% {
-                background-position: 0 0;
-            }
-            100% {
-                background-position: 0 100%;
-            }
-        }
-        .fade-in {
-            animation: fadeIn 1s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-        .content-container {
-            transition: opacity 0.5s ease-in-out;
-        }
-        .content-container.fade-out {
-            opacity: 0;
-        }
-        .content-container.fade-in {
-            opacity: 1;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 20px;
-            background-color: #121212;
-            color: #ffffff;
-            animation: fadeIn 1s ease-in-out;
-        }
-        .header .username {
-            cursor: pointer;
-            position: relative;
-        }
-        .header .dropdown {
-            display: none;
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background-color: #1c1c1c;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-            overflow: hidden;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        .header .dropdown a {
-            display: block;
-            padding: 10px;
-            color: #ffffff;
-            text-decoration: none;
-        }
-        .header .dropdown a:hover {
-            background-color: #333;
-        }
-        .header .username:hover .dropdown {
-            display: block;
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .tab-menu {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-            animation: fadeIn 1s ease-in-out;
-        }
-        .tab-menu button {
-            background-color: #121212;
-            color: #ffffff;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            margin: 0 5px;
-            transition: background-color 0.3s ease;
-        }
-        .tab-menu button:hover {
-            background-color: #1c1c1c;
-        }
-        .tab-menu button.active {
-            background-color: #ffffff;
-            color: #000;
-        }
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #121212;
-            color: #ffffff;
-            animation: fadeIn 1s ease-in-out;
         }
     </style>
 </head>
@@ -249,6 +84,20 @@
         <a class="back-button" id="back-button" style="display: none;">← Back</a>
         <div id="document-sections"></div>
     </div>
+    <!-- Admin Menu -->
+    <div class="admin-menu" id="admin-menu">
+        <h2>Admin Menu</h2>
+        <div>
+            <label for="user-permissions">Enter Username and Repo (username:repo):</label>
+            <input type="text" id="user-permissions" placeholder="e.g., user1:repo1">
+            <button id="add-permission">Add Permission</button>
+            <button id="remove-permission">Remove Permission</button>
+        </div>
+        <div id="permissions-list">
+            <h3>Current Permissions:</h3>
+            <ul id="permissions-ul"></ul>
+        </div>
+    </div>
     <div class="rain"></div>
     <footer>@lungdrug</footer>
     <script>
@@ -257,6 +106,10 @@
         let allDocuments = [];
         let currentPath = '';
         let currentRepo = 'repo1';
+        const permissions = {
+            'lungdrug': ['repo1', 'repo2']
+            // Add permissions here, e.g., 'user1': ['repo1'], 'user2': ['repo2']
+        };
 
         const repos = {
             repo1: {
@@ -269,7 +122,6 @@
             }
         };
 
-        // SHA-256 encryption function
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -301,14 +153,16 @@
                 document.getElementById('tab-menu').style.display = 'flex';
                 document.getElementById('username-display').textContent = username;
                 welcomeMessage.textContent = `Welcome, ${username}!`;
-                loadFolder(); // Load the document contents after successful login
+                if (username === storedUsername) {
+                    document.getElementById('admin-menu').style.display = 'block';
+                }
+                loadFolder(); 
             } else {
                 statusMessage.textContent = 'Invalid username or password!';
                 statusMessage.style.color = '#ff0000';
             }
         });
 
-        // Check if user is remembered
         window.addEventListener('load', () => {
             const rememberedUsername = localStorage.getItem('username');
             const rememberedPassword = localStorage.getItem('password');
@@ -354,10 +208,14 @@
         }
 
         async function loadFolder(path = '') {
+            if (!checkPermissions(currentRepo)) {
+                showStatusMessage('You do not have permission to access this repository.');
+                return;
+            }
             showLoading(true);
             try {
                 const contents = await fetchContents(path);
-                contents.sort((a, b) => a.name.localeCompare(b.name)); // Sort by name
+                contents.sort((a, b) => a.name.localeCompare(b.name));
                 console.log(`Contents of ${path || 'root'}:`, contents);
                 allDocuments = contents;
                 documentSections.innerHTML = '';
@@ -432,6 +290,51 @@
                 }
             }
         }
+
+        document.getElementById('add-permission').addEventListener('click', () => {
+            const userPermissionsInput = document.getElementById('user-permissions').value;
+            const [username, repo] = userPermissionsInput.split(':');
+            if (username && repo && repos[repo]) {
+                if (!permissions[username]) {
+                    permissions[username] = [];
+                }
+                permissions[username].push(repo);
+                updatePermissionsList();
+            } else {
+                alert('Invalid input or repository does not exist.');
+            }
+        });
+
+        document.getElementById('remove-permission').addEventListener('click', () => {
+            const userPermissionsInput = document.getElementById('user-permissions').value;
+            const [username, repo] = userPermissionsInput.split(':');
+            if (username && repo && permissions[username]) {
+                permissions[username] = permissions[username].filter(r => r !== repo);
+                updatePermissionsList();
+            } else {
+                alert('Invalid input or user does not have permission for this repository.');
+            }
+        });
+
+        function updatePermissionsList() {
+            const permissionsUl = document.getElementById('permissions-ul');
+            permissionsUl.innerHTML = '';
+            for (const [username, repos] of Object.entries(permissions)) {
+                repos.forEach(repo => {
+                    const li = document.createElement('li');
+                    li.textContent = `${username}: ${repo}`;
+                    permissionsUl.appendChild(li);
+                });
+            }
+        }
+
+        function checkPermissions(repo) {
+            const username = document.getElementById('username-display').textContent;
+            return permissions[username] && permissions[username].includes(repo);
+        }
+
+        // Initialize permissions list on page load
+        updatePermissionsList();
     </script>
 </body>
 </html>
