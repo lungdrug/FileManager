@@ -29,12 +29,7 @@
             border-right: .15em solid #ffffff;
             animation: typing 4s steps(30, end), blink-caret .75s step-end infinite;
         }
-        .login-heading {
-            text-align: center;
-            color: #ffffff;
-            animation: fadeIn 1s ease-in-out;
-        }
-        .login-container, .content-container {
+        .login-container, .content-container, .settings-container {
             max-width: 400px;
             margin: 20px auto;
             padding: 20px;
@@ -46,7 +41,8 @@
         .login-container input[type="text"],
         .login-container input[type="password"],
         .content-container input[type="text"],
-        .content-container input[type="password"] {
+        .content-container input[type="password"],
+        .settings-container input[type="password"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -55,10 +51,12 @@
             background-color: #1c1c1c;
             color: #fff;
             transition: all 0.3s ease;
-            box-sizing: border-box;
+            box-sizing: border-box; /* Ensure input elements are inside the border */
         }
         .login-container input[type="submit"],
-        .content-container input[type="submit"], .content-container input[type="search"] {
+        .content-container input[type="submit"],
+        .content-container input[type="search"], 
+        .settings-container input[type="submit"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -71,10 +69,11 @@
             overflow: hidden;
             position: relative;
             transition: background-color 0.3s ease;
-            box-sizing: border-box;
+            box-sizing: border-box; /* Ensure input elements are inside the border */
         }
         .login-container input[type="submit"]:hover,
-        .content-container input[type="submit"]:hover {
+        .content-container input[type="submit"]:hover,
+        .settings-container input[type="submit"]:hover {
             background-color: #cccccc;
         }
         .login-container input[type="checkbox"] {
@@ -101,7 +100,7 @@
             font-weight: bold;
             transition: transform 0.3s, color 0.3s;
             cursor: pointer;
-            word-wrap: break-word;
+            word-wrap: break-word; /* Ensure file names wrap if they leave the border */
         }
         .folder-link:hover, .document-link:hover, .back-button:hover {
             text-decoration: underline;
@@ -182,7 +181,7 @@
         .header .dropdown a:hover {
             background-color: #333;
         }
-        .header .username:hover .dropdown {
+        .header .username.active .dropdown {
             display: block;
             opacity: 1;
             transform: translateY(0);
@@ -220,9 +219,6 @@
     </style>
 </head>
 <body>
-    <div class="login-heading fade-in" id="login-heading">
-        <h1>Login</h1>
-    </div>
     <div class="login-container fade-in" id="login-container">
         <form id="login-form">
             <label for="username">Username:</label>
@@ -239,11 +235,11 @@
     </div>
     <div class="header" id="header" style="display: none;">
         <div class="logo">lungdrug's storage site</div>
-        <div class="username">
+        <div class="username" id="username-container">
             <span id="username-display"></span>
             <div class="dropdown">
-                <a href="#" id="logout-button">Logout</a>
                 <a href="#" id="settings-button">Settings</a>
+                <a href="#" id="logout-button">Logout</a>
             </div>
         </div>
     </div>
@@ -258,11 +254,21 @@
         <a class="back-button" id="back-button" style="display: none;">← Back</a>
         <div id="document-sections"></div>
     </div>
+    <div class="settings-container fade-in" id="settings-container" style="display: none;">
+        <form id="settings-form">
+            <label for="new-password">New Password:</label>
+            <input type="password" id="new-password" name="new-password" required>
+            <label for="confirm-password">Confirm Password:</label>
+            <input type="password" id="confirm-password" name="confirm-password" required>
+            <input type="submit" value="Change Password">
+        </form>
+        <div class="status-message fade-in" id="settings-status-message"></div>
+    </div>
     <div class="rain"></div>
     <footer>@lungdrug</footer>
     <script>
         const storedUsername = 'lungdrug';
-        const storedPasswordHash = 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569';
+        let storedPasswordHash = 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569';
         let allDocuments = [];
         let currentPath = '';
         let currentRepo = 'repo1';
@@ -278,6 +284,7 @@
             }
         };
 
+        // SHA-256 encryption function
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -304,54 +311,185 @@
                 statusMessage.textContent = 'Login successful!';
                 statusMessage.style.color = '#ffffff';
                 document.getElementById('login-container').style.display = 'none';
-                document.getElementById('login-heading').style.display = 'none';
                 document.getElementById('content-container').style.display = 'block';
                 document.getElementById('header').style.display = 'flex';
                 document.getElementById('tab-menu').style.display = 'flex';
                 document.getElementById('username-display').textContent = username;
                 welcomeMessage.textContent = `Welcome, ${username}!`;
-                loadFolder();
+                loadFolder(); // Load the document contents after successful login
             } else {
                 statusMessage.textContent = 'Invalid username or password!';
                 statusMessage.style.color = '#ff0000';
             }
         });
 
-        async function loadFolder() {
-            // Simulate loading documents from a repository
-            allDocuments = [
-                { title: 'Document 1', link: '#document1' },
-                { title: 'Document 2', link: '#document2' },
-                { title: 'Document 3', link: '#document3' }
-            ];
-            displayDocuments();
+        // Check if user is remembered
+        window.addEventListener('load', () => {
+            const rememberedUsername = localStorage.getItem('username');
+            const rememberedPassword = localStorage.getItem('password');
+            if (rememberedUsername && rememberedPassword) {
+                document.getElementById('username').value = rememberedUsername;
+                document.getElementById('password').value = rememberedPassword;
+                document.getElementById('remember-me').checked = true;
+            }
+        });
+
+        document.getElementById('logout-button').addEventListener('click', () => {
+            localStorage.removeItem('username');
+            localStorage.removeItem('password');
+            location.reload();
+        });
+
+        document.getElementById('settings-button').addEventListener('click', () => {
+            document.getElementById('content-container').style.display = 'none';
+            document.getElementById('settings-container').style.display = 'block';
+        });
+
+        document.getElementById('settings-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const settingsStatusMessage = document.getElementById('settings-status-message');
+
+            if (newPassword !== confirmPassword) {
+                settingsStatusMessage.textContent = 'Passwords do not match!';
+                settingsStatusMessage.style.color = '#ff0000';
+                return;
+            }
+
+            const newEncryptedPassword = await sha256(newPassword);
+            storedPasswordHash = newEncryptedPassword;
+
+            localStorage.setItem('password', newEncryptedPassword);
+            settingsStatusMessage.textContent = 'Password changed successfully!';
+            settingsStatusMessage.style.color = '#ffffff';
+        });
+
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentRepo = button.getAttribute('data-repo');
+                switchRepo();
+            });
+        });
+
+        const documentSections = document.getElementById('document-sections');
+        const loadingMessage = document.getElementById('loading-message');
+        const backButton = document.getElementById('back-button');
+        const contentContainer = document.getElementById('content-container');
+
+        async function fetchContents(path = '') {
+            const repo = repos[currentRepo];
+            const repoUrl = `https://api.github.com/repos/${repo.owner}/${repo.name}/contents/`;
+            const url = path ? `${repoUrl}${path}` : repoUrl;
+            console.log(`Fetching contents from: ${url}`);
+            const response = await fetch(url);
+            if (!response.ok) {
+                console.error(`HTTP error! status: ${response.status}`);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            return data;
         }
 
-        function displayDocuments() {
-            const documentSections = document.getElementById('document-sections');
-            documentSections.innerHTML = '';
-            allDocuments.forEach(doc => {
-                const documentLink = document.createElement('a');
-                documentLink.href = doc.link;
-                documentLink.classList.add('document-link');
-                documentLink.textContent = doc.title;
-                documentSections.appendChild(documentLink);
-            });
+        async function loadFolder(path = '') {
+            showLoading(true);
+            try {
+                const contents = await fetchContents(path);
+                contents.sort((a, b) => a.name.localeCompare(b.name)); // Sort by name
+                console.log(`Contents of ${path || 'root'}:`, contents);
+                allDocuments = contents;
+                documentSections.innerHTML = '';
+                if (path) {
+                    backButton.style.display = 'block';
+                    backButton.onclick = () => goBack(path);
+                } else {
+                    backButton.style.display = 'none';
+                }
+                contents.forEach(item => documentSections.appendChild(createLink(item, path)));
+                currentPath = path;
+                showLoading(false);
+            } catch (error) {
+                console.error('Error fetching documents:', error);
+                showStatusMessage('Failed to load documents');
+                showLoading(false);
+            }
+        }
+
+        function switchRepo() {
+            contentContainer.classList.add('fade-out');
+            setTimeout(() => {
+                loadFolder();
+                contentContainer.classList.remove('fade-out');
+                contentContainer.classList.add('fade-in');
+            }, 500);
+        }
+
+        function goBack(path) {
+            const parentPath = path.split('/').slice(0, -2).join('/');
+            loadFolder(parentPath ? `${parentPath}/` : '');
+        }
+
+        function showLoading(show) {
+            loadingMessage.style.display = show ? 'block' : 'none';
+        }
+
+        function showStatusMessage(message) {
+            const statusMessage = document.getElementById('status-message');
+            statusMessage.textContent = message;
+        }
+
+        function createLink(item, parentPath = '') {
+            const link = document.createElement('a');
+            if (item.type === 'dir') {
+                link.href = '#';
+                link.textContent = `Go to ${item.name}`;
+                link.className = 'folder-link';
+                link.onclick = async (e) => {
+                    e.preventDefault();
+                    loadFolder(`${parentPath}${item.name}/`);
+                };
+            } else if (item.type === 'file') {
+                const repo = repos[currentRepo];
+                link.href = `https://raw.githubusercontent.com/${repo.owner}/${repo.name}/main/${parentPath}${item.name}`;
+                link.download = item.name;
+                link.textContent = `Download ${item.name}`;
+                link.className = 'document-link';
+            }
+            return link;
         }
 
         function filterDocuments() {
-            const query = document.getElementById('search-bar').value.toLowerCase();
-            const filteredDocs = allDocuments.filter(doc => doc.title.toLowerCase().includes(query));
-            const documentSections = document.getElementById('document-sections');
-            documentSections.innerHTML = '';
-            filteredDocs.forEach(doc => {
-                const documentLink = document.createElement('a');
-                documentLink.href = doc.link;
-                documentLink.classList.add('document-link');
-                documentLink.textContent = doc.title;
-                documentSections.appendChild(documentLink);
-            });
+            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+            const links = documentSections.getElementsByTagName('a');
+            for (const link of links) {
+                const text = link.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    link.style.display = '';
+                } else {
+                    link.style.display = 'none';
+                }
+            }
         }
+
+        document.getElementById('username-container').addEventListener('click', () => {
+            const dropdown = document.querySelector('.dropdown');
+            if (dropdown.style.display === 'block') {
+                dropdown.style.opacity = 0;
+                dropdown.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    dropdown.style.display = 'none';
+                }, 300);
+            } else {
+                dropdown.style.display = 'block';
+                setTimeout(() => {
+                    dropdown.style.opacity = 1;
+                    dropdown.style.transform = 'translateY(0)';
+                }, 10);
+            }
+        });
     </script>
 </body>
 </html>
