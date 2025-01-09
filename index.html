@@ -374,14 +374,27 @@
             console.log(`Fetching contents from: ${url}`);
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': `token YOUR_PERSONAL_ACCESS_TOKEN_HERE`
+                    'Authorization': `token ${await getDecryptedPAT()}`
                 }
             });
             if (!response.ok) {
                 console.error(`HTTP error! status: ${response.status}`);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            return await response.json();
+            const data = await response.json();
+            return data;
+        }
+
+        async function getDecryptedPAT() {
+            // In a real-world scenario, you would fetch the PAT from a secure server
+            // Here we use a placeholder since we can't decrypt SHA-256
+            const plainTextPAT = 'YOUR_PERSONAL_ACCESS_TOKEN_HERE';
+            const encryptedPat = await sha256(plainTextPAT);
+            if (encryptedPat === storedPatHash) {
+                return plainTextPAT;
+            } else {
+                throw new Error('Invalid PAT');
+            }
         }
 
         async function loadFolder(path = '') {
@@ -390,7 +403,7 @@
                 const contents = await fetchContents(path);
                 contents.sort((a, b) => a.name.localeCompare(b.name)); // Sort by name
                 console.log(`Contents of ${path || 'root'}:`, contents);
-                allDocuments = allDocuments.concat(contents);
+                allDocuments = contents;
                 documentSections.innerHTML = '';
                 if (path) {
                     backButton.style.display = 'block';
