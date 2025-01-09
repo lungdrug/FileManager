@@ -280,8 +280,6 @@
     <script>
         const storedUsername = 'lungdrug';
         const storedPasswordHash = 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569';
-        const storedPatHash = '392a4a3ed417b3ff47e3a3480823ff2ef4f89aa0e022bd7b663c07e04831a715';
-        const pat = 'YOUR_PERSONAL_ACCESS_TOKEN_HERE'; // Replace with your actual PAT
         let allDocuments = [];
         let currentPath = '';
         let currentRepo = 'repo1';
@@ -373,11 +371,7 @@
             const repoUrl = `https://api.github.com/repos/${repo.owner}/${repo.name}/contents/`;
             const url = path ? `${repoUrl}${path}` : repoUrl;
             console.log(`Fetching contents from: ${url}`);
-            const response = await fetch(url, {
-                headers: {
-                    'Authorization': `token ${pat}`
-                }
-            });
+            const response = await fetch(url);
             if (!response.ok) {
                 console.error(`HTTP error! status: ${response.status}`);
                 throw new Error(`HTTP error! status: ${response.status}`);
