@@ -26,7 +26,7 @@
             background-color: #121212;
             border-radius: 10px;
             box-shadow: 0 0 10px #ffffff;
-            animation: slideIn 1s ease-in-out;
+            animation: fadeIn 1s ease-in-out;
         }
         .login-container input[type="text"],
         .login-container input[type="password"],
@@ -40,15 +40,7 @@
             background-color: #1c1c1c;
             color: #fff;
             transition: all 0.3s ease;
-        }
-        .login-container input[type="text"]:focus,
-        .login-container input[type="password"]:focus {
-            animation: glowing 1.5s infinite;
-        }
-        @keyframes glowing {
-            0% { box-shadow: 0 0 5px #ffffff; }
-            50% { box-shadow: 0 0 20px #ffffff; }
-            100% { box-shadow: 0 0 5px #ffffff; }
+            box-sizing: border-box; /* Ensure input elements are inside the border */
         }
         .login-container input[type="submit"],
         .content-container input[type="submit"], .content-container input[type="search"] {
@@ -64,23 +56,7 @@
             overflow: hidden;
             position: relative;
             transition: background-color 0.3s ease;
-        }
-        .login-container input[type="submit"]::after {
-            content: '';
-            width: 300%;
-            height: 300%;
-            background: radial-gradient(circle, rgba(255,255,255,0.5) 10%, transparent 10.01%);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            opacity: 0;
-            transition: all 0.5s;
-            transform: translate(-50%, -50%) scale(1);
-        }
-        .login-container input[type="submit"]:active::after {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(0);
-            transition: 0s;
+            box-sizing: border-box; /* Ensure input elements are inside the border */
         }
         .login-container input[type="submit"]:hover,
         .content-container input[type="submit"]:hover {
@@ -135,28 +111,8 @@
                 background-position: 0 100%;
             }
         }
-        .fly-in {
-            animation: fly-in 1s ease-in-out;
-        }
-        @keyframes fly-in {
-            from {
-                transform: translateX(-100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
+        .fade-in {
+            animation: fadeIn 1s ease-in-out;
         }
         @keyframes fadeIn {
             from {
@@ -166,6 +122,15 @@
                 opacity: 1;
             }
         }
+        .content-container {
+            transition: opacity 0.5s ease-in-out;
+        }
+        .content-container.fade-out {
+            opacity: 0;
+        }
+        .content-container.fade-in {
+            opacity: 1;
+        }
         .header {
             display: flex;
             justify-content: space-between;
@@ -173,20 +138,24 @@
             padding: 10px 20px;
             background-color: #121212;
             color: #ffffff;
+            animation: fadeIn 1s ease-in-out;
         }
         .header .username {
             cursor: pointer;
             position: relative;
-            animation: glowing 1.5s infinite;
         }
         .header .dropdown {
             display: none;
             position: absolute;
             top: 100%;
             right: 0;
-            background-color: #121212;
-            box-shadow: 0 0 10px #ffffff;
+            background-color: #1c1c1c;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
             border-radius: 5px;
+            overflow: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            opacity: 0;
+            transform: translateY(-10px);
         }
         .header .dropdown a {
             display: block;
@@ -195,15 +164,18 @@
             text-decoration: none;
         }
         .header .dropdown a:hover {
-            background-color: #1c1c1c;
+            background-color: #333;
         }
         .header .username:hover .dropdown {
             display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
         .tab-menu {
             display: flex;
             justify-content: center;
             margin: 20px 0;
+            animation: fadeIn 1s ease-in-out;
         }
         .tab-menu button {
             background-color: #121212;
@@ -221,27 +193,19 @@
             background-color: #ffffff;
             color: #000;
         }
-        .content-container {
-            transition: opacity 0.5s ease-in-out;
-        }
-        .content-container.fade-out {
-            opacity: 0;
-        }
-        .content-container.fade-in {
-            opacity: 1;
-        }
         footer {
             text-align: center;
             margin-top: 20px;
             padding: 10px;
             background-color: #121212;
             color: #ffffff;
+            animation: fadeIn 1s ease-in-out;
         }
     </style>
 </head>
 <body>
     <h1 id="page-title">Login</h1>
-    <div class="login-container fly-in" id="login-container">
+    <div class="login-container fade-in" id="login-container">
         <form id="login-form">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
@@ -253,7 +217,7 @@
             </div>
             <input type="submit" value="Login">
         </form>
-        <div class="status-message" id="status-message"></div>
+        <div class="status-message fade-in" id="status-message"></div>
     </div>
     <div class="header" id="header" style="display: none;">
         <div class="logo">lungdrug's storage site</div>
@@ -268,7 +232,7 @@
         <button class="tab-button active" data-repo="repo1">School Work</button>
         <button class="tab-button" data-repo="repo2">Clips</button>
     </div>
-    <div class="content-container" id="content-container" style="display: none;">
+    <div class="content-container fade-in" id="content-container" style="display: none;">
         <div class="welcome-message" id="welcome-message"></div>
         <div id="loading-message" class="loading-message">Loading documents, please wait...</div>
         <input type="search" id="search-bar" placeholder="Search documents..." oninput="filterDocuments()">
@@ -322,7 +286,6 @@
                 statusMessage.textContent = 'Login successful!';
                 statusMessage.style.color = '#ffffff';
                 document.getElementById('login-container').style.display = 'none';
-                document.getElementById('page-title').textContent = 'Download Documents';
                 document.getElementById('content-container').style.display = 'block';
                 document.getElementById('header').style.display = 'flex';
                 document.getElementById('tab-menu').style.display = 'flex';
