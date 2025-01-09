@@ -16,7 +16,7 @@
         }
         h1 {
             text-align: center;
-            color: #00ff00;
+            color: #ffffff;
             animation: fadeIn 1s ease-in-out;
         }
         .login-container, .content-container {
@@ -25,7 +25,7 @@
             padding: 20px;
             background-color: #121212;
             border-radius: 10px;
-            box-shadow: 0 0 10px #00ff00;
+            box-shadow: 0 0 10px #ffffff;
             animation: slideIn 1s ease-in-out;
         }
         .login-container input[type="text"],
@@ -46,9 +46,9 @@
             animation: glowing 1.5s infinite;
         }
         @keyframes glowing {
-            0% { box-shadow: 0 0 5px #00ff00; }
-            50% { box-shadow: 0 0 20px #00ff00; }
-            100% { box-shadow: 0 0 5px #00ff00; }
+            0% { box-shadow: 0 0 5px #ffffff; }
+            50% { box-shadow: 0 0 20px #ffffff; }
+            100% { box-shadow: 0 0 5px #ffffff; }
         }
         .login-container input[type="submit"],
         .content-container input[type="submit"], .content-container input[type="search"] {
@@ -57,7 +57,7 @@
             margin: 10px 0;
             border: none;
             border-radius: 5px;
-            background-color: #00ff00;
+            background-color: #ffffff;
             color: #000;
             font-weight: bold;
             cursor: pointer;
@@ -65,25 +65,25 @@
         }
         .login-container input[type="submit"]:hover,
         .content-container input[type="submit"]:hover {
-            background-color: #00cc00;
+            background-color: #cccccc;
         }
         .status-message {
             text-align: center;
             margin: 20px 0;
-            color: #00ff00;
+            color: #ffffff;
             animation: fadeIn 1s ease-in-out;
         }
         .welcome-message {
             text-align: center;
             margin: 20px 0;
-            color: #00ff00;
+            color: #ffffff;
             font-size: 1.2em;
             animation: fadeIn 1s ease-in-out;
         }
         .folder-link, .document-link, .back-button {
             display: block;
             margin: 10px 0;
-            color: #00ff00;
+            color: #ffffff;
             text-decoration: none;
             font-weight: bold;
             transition: transform 0.3s, color 0.3s;
@@ -92,7 +92,7 @@
         .folder-link:hover, .document-link:hover, .back-button:hover {
             text-decoration: underline;
             transform: scale(1.1);
-            color: #00cc00;
+            color: #cccccc;
         }
         .rain {
             position: fixed;
@@ -149,7 +149,7 @@
             margin-top: 20px;
             padding: 10px;
             background-color: #121212;
-            color: #00ff00;
+            color: #ffffff;
         }
     </style>
 </head>
@@ -177,6 +177,7 @@
     <script>
         const storedUsername = 'lungdrug';
         const storedPasswordHash = 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569';
+        const storedPatHash = '392a4a3ed417b3ff47e3a3480823ff2ef4f89aa0e022bd7b663c07e04831a715'; // Replace with the SHA-256 hash of your PAT
         let allDocuments = [];
         let currentPath = '';
 
@@ -194,20 +195,22 @@
 
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const pat = prompt('Please enter your Personal Access Token (PAT):');
             const encryptedPassword = await sha256(password);
+            const encryptedPat = await sha256(pat);
 
             const statusMessage = document.getElementById('status-message');
             const welcomeMessage = document.getElementById('welcome-message');
-            if (username === storedUsername && encryptedPassword === storedPasswordHash) {
+            if (username === storedUsername && encryptedPassword === storedPasswordHash && encryptedPat === storedPatHash) {
                 statusMessage.textContent = 'Login successful!';
-                statusMessage.style.color = '#00ff00';
+                statusMessage.style.color = '#ffffff';
                 document.getElementById('login-container').style.display = 'none';
                 document.getElementById('page-title').textContent = 'Download Documents';
                 document.getElementById('content-container').style.display = 'block';
                 welcomeMessage.textContent = `Welcome, ${username}!`;
-                loadFolder(); // Load the document contents after successful login
+                loadFolder(pat); // Load the document contents after successful login
             } else {
-                statusMessage.textContent = 'Invalid username or password!';
+                statusMessage.textContent = 'Invalid username, password, or PAT!';
                 statusMessage.style.color = '#ff0000';
             }
         });
@@ -219,10 +222,14 @@
         const loadingMessage = document.getElementById('loading-message');
         const backButton = document.getElementById('back-button');
 
-        async function fetchContents(path = '') {
+        async function fetchContents(path = '', pat) {
             const url = path ? `${repoUrl}${path}` : repoUrl;
             console.log(`Fetching contents from: ${url}`);
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `token ${pat}`
+                }
+            });
             if (!response.ok) {
                 console.error(`HTTP error! status: ${response.status}`);
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -230,17 +237,17 @@
             return await response.json();
         }
 
-        async function loadFolder(path = '') {
+        async function loadFolder(pat, path = '') {
             showLoading(true);
             try {
-                const contents = await fetchContents(path);
+                const contents = await fetchContents(path, pat);
                 contents.sort((a, b) => a.name.localeCompare(b.name)); // Sort by name
                 console.log(`Contents of ${path || 'root'}:`, contents);
                 allDocuments = allDocuments.concat(contents);
                 documentSections.innerHTML = '';
                 if (path) {
                     backButton.style.display = 'block';
-                    backButton.onclick = () => goBack(path);
+                    backButton.onclick = () => goBack(pat, path);
                 } else {
                     backButton.style.display = 'none';
                 }
@@ -254,9 +261,9 @@
             }
         }
 
-        function goBack(path) {
+        function goBack(pat, path) {
             const parentPath = path.split('/').slice(0, -2).join('/');
-            loadFolder(parentPath ? `${parentPath}/` : '');
+            loadFolder(pat, parentPath ? `${parentPath}/` : '');
         }
 
         function showLoading(show) {
@@ -276,7 +283,7 @@
                 link.className = 'folder-link';
                 link.onclick = async (e) => {
                     e.preventDefault();
-                    loadFolder(`${parentPath}${item.name}/`);
+                    loadFolder(currentPat, `${parentPath}${item.name}/`);
                 };
             } else if (item.type === 'file') {
                 link.href = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${parentPath}${item.name}`;
