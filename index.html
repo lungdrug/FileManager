@@ -200,6 +200,36 @@
         .header .username:hover .dropdown {
             display: block;
         }
+        .tab-menu {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .tab-menu button {
+            background-color: #121212;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: background-color 0.3s ease;
+        }
+        .tab-menu button:hover {
+            background-color: #1c1c1c;
+        }
+        .tab-menu button.active {
+            background-color: #ffffff;
+            color: #000;
+        }
+        .content-container {
+            transition: opacity 0.5s ease-in-out;
+        }
+        .content-container.fade-out {
+            opacity: 0;
+        }
+        .content-container.fade-in {
+            opacity: 1;
+        }
         footer {
             text-align: center;
             margin-top: 20px;
@@ -234,6 +264,10 @@
             </div>
         </div>
     </div>
+    <div class="tab-menu" id="tab-menu" style="display: none;">
+        <button class="tab-button active" data-repo="repo1">School Work</button>
+        <button class="tab-button" data-repo="repo2">Clips</button>
+    </div>
     <div class="content-container" id="content-container" style="display: none;">
         <div class="welcome-message" id="welcome-message"></div>
         <div id="loading-message" class="loading-message">Loading documents, please wait...</div>
@@ -249,6 +283,18 @@
         const storedPatHash = '392a4a3ed417b3ff47e3a3480823ff2ef4f89aa0e022bd7b663c07e04831a715';
         let allDocuments = [];
         let currentPath = '';
+        let currentRepo = 'repo1';
+
+        const repos = {
+            repo1: {
+                owner: 'lungdrug',
+                name: 'SW'
+            },
+            repo2: {
+                owner: 'lungdrug',
+                name: 'Funny-Clips'
+            }
+        };
 
         // SHA-256 encryption function
         async function sha256(message) {
@@ -270,25 +316,20 @@
             const statusMessage = document.getElementById('status-message');
             const welcomeMessage = document.getElementById('welcome-message');
             if (username === storedUsername && encryptedPassword === storedPasswordHash) {
-                const encryptedPat = await sha256(pat);
-                if (encryptedPat === storedPatHash) {
-                    if (rememberMe) {
-                        localStorage.setItem('username', username);
-                        localStorage.setItem('password', encryptedPassword);
-                    }
-                    statusMessage.textContent = 'Login successful!';
-                    statusMessage.style.color = '#ffffff';
-                    document.getElementById('login-container').style.display = 'none';
-                    document.getElementById('page-title').textContent = 'Download Documents';
-                    document.getElementById('content-container').style.display = 'block';
-                    document.getElementById('header').style.display = 'flex';
-                    document.getElementById('username-display').textContent = username;
-                    welcomeMessage.textContent = `Welcome, ${username}!`;
-                    loadFolder(); // Load the document contents after successful login
-                } else {
-                    statusMessage.textContent = 'Invalid PAT!';
-                    statusMessage.style.color = '#ff0000';
+                if (rememberMe) {
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('password', encryptedPassword);
                 }
+                statusMessage.textContent = 'Login successful!';
+                statusMessage.style.color = '#ffffff';
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('page-title').textContent = 'Download Documents';
+                document.getElementById('content-container').style.display = 'block';
+                document.getElementById('header').style.display = 'flex';
+                document.getElementById('tab-menu').style.display = 'flex';
+                document.getElementById('username-display').textContent = username;
+                welcomeMessage.textContent = `Welcome, ${username}!`;
+                loadFolder(); // Load the document contents after successful login
             } else {
                 statusMessage.textContent = 'Invalid username or password!';
                 statusMessage.style.color = '#ff0000';
@@ -312,19 +353,28 @@
             location.reload();
         });
 
-        const repoOwner = 'lungdrug';
-        const repoName = 'SW';
-        const repoUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/`;
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentRepo = button.getAttribute('data-repo');
+                switchRepo();
+            });
+        });
+
         const documentSections = document.getElementById('document-sections');
         const loadingMessage = document.getElementById('loading-message');
         const backButton = document.getElementById('back-button');
+        const contentContainer = document.getElementById('content-container');
 
         async function fetchContents(path = '') {
+            const repo = repos[currentRepo];
+            const repoUrl = `https://api.github.com/repos/${repo.owner}/${repo.name}/contents/`;
             const url = path ? `${repoUrl}${path}` : repoUrl;
             console.log(`Fetching contents from: ${url}`);
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': `token ${pat}`
+                    'Authorization': `token YOUR_PERSONAL_ACCESS_TOKEN_HERE`
                 }
             });
             if (!response.ok) {
@@ -358,6 +408,15 @@
             }
         }
 
+        function switchRepo() {
+            contentContainer.classList.add('fade-out');
+            setTimeout(() => {
+                loadFolder();
+                contentContainer.classList.remove('fade-out');
+                contentContainer.classList.add('fade-in');
+            }, 500);
+        }
+
         function goBack(path) {
             const parentPath = path.split('/').slice(0, -2).join('/');
             loadFolder(parentPath ? `${parentPath}/` : '');
@@ -383,7 +442,8 @@
                     loadFolder(`${parentPath}${item.name}/`);
                 };
             } else if (item.type === 'file') {
-                link.href = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${parentPath}${item.name}`;
+                const repo = repos[currentRepo];
+                link.href = `https://raw.githubusercontent.com/${repo.owner}/${repo.name}/main/${parentPath}${item.name}`;
                 link.download = item.name;
                 link.textContent = `Download ${item.name}`;
                 link.className = 'document-link';
