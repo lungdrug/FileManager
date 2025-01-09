@@ -177,7 +177,8 @@
     <script>
         const storedUsername = 'lungdrug';
         const storedPasswordHash = 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569';
-        const storedPatHash = '392a4a3ed417b3ff47e3a3480823ff2ef4f89aa0e022bd7b663c07e04831a715'; // Replace with the SHA-256 hash of your PAT
+        const storedPatHash = 'a0b0a3d0caf5e17d8c8f5f21cce6291a8ff8f6d6a9c9c5a5a2a6a2a2a2a2a2a2'; // Replace with the SHA-256 hash of your PAT
+        let currentPat = '';
         let allDocuments = [];
         let currentPath = '';
 
@@ -202,13 +203,14 @@
             const statusMessage = document.getElementById('status-message');
             const welcomeMessage = document.getElementById('welcome-message');
             if (username === storedUsername && encryptedPassword === storedPasswordHash && encryptedPat === storedPatHash) {
+                currentPat = pat;
                 statusMessage.textContent = 'Login successful!';
                 statusMessage.style.color = '#ffffff';
                 document.getElementById('login-container').style.display = 'none';
                 document.getElementById('page-title').textContent = 'Download Documents';
                 document.getElementById('content-container').style.display = 'block';
                 welcomeMessage.textContent = `Welcome, ${username}!`;
-                loadFolder(pat); // Load the document contents after successful login
+                loadFolder(); // Load the document contents after successful login
             } else {
                 statusMessage.textContent = 'Invalid username, password, or PAT!';
                 statusMessage.style.color = '#ff0000';
@@ -222,12 +224,12 @@
         const loadingMessage = document.getElementById('loading-message');
         const backButton = document.getElementById('back-button');
 
-        async function fetchContents(path = '', pat) {
+        async function fetchContents(path = '') {
             const url = path ? `${repoUrl}${path}` : repoUrl;
             console.log(`Fetching contents from: ${url}`);
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': `token ${pat}`
+                    'Authorization': `token ${currentPat}`
                 }
             });
             if (!response.ok) {
@@ -237,17 +239,17 @@
             return await response.json();
         }
 
-        async function loadFolder(pat, path = '') {
+        async function loadFolder(path = '') {
             showLoading(true);
             try {
-                const contents = await fetchContents(path, pat);
+                const contents = await fetchContents(path);
                 contents.sort((a, b) => a.name.localeCompare(b.name)); // Sort by name
                 console.log(`Contents of ${path || 'root'}:`, contents);
                 allDocuments = allDocuments.concat(contents);
                 documentSections.innerHTML = '';
                 if (path) {
                     backButton.style.display = 'block';
-                    backButton.onclick = () => goBack(pat, path);
+                    backButton.onclick = () => goBack(path);
                 } else {
                     backButton.style.display = 'none';
                 }
@@ -261,9 +263,9 @@
             }
         }
 
-        function goBack(pat, path) {
+        function goBack(path) {
             const parentPath = path.split('/').slice(0, -2).join('/');
-            loadFolder(pat, parentPath ? `${parentPath}/` : '');
+            loadFolder(parentPath ? `${parentPath}/` : '');
         }
 
         function showLoading(show) {
@@ -283,7 +285,7 @@
                 link.className = 'folder-link';
                 link.onclick = async (e) => {
                     e.preventDefault();
-                    loadFolder(currentPat, `${parentPath}${item.name}/`);
+                    loadFolder(`${parentPath}${item.name}/`);
                 };
             } else if (item.type === 'file') {
                 link.href = `https://raw.githubusercontent.com/${repoOwner}/${repoName}/main/${parentPath}${item.name}`;
