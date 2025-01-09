@@ -14,14 +14,24 @@
             color: #fff;
             overflow-x: hidden;
         }
-        h1 {
-            text-align: center;
-            color: #ffffff;
-            animation: fadeIn 1s ease-in-out;
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: #ffffff; }
+        }
+        .logo {
+            font-size: 1.5em;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: .15em solid #ffffff;
+            animation: typing 4s steps(30, end), blink-caret .75s step-end infinite;
         }
         .login-container, .content-container {
             max-width: 400px;
-            margin: 50px auto;
+            margin: 20px auto;
             padding: 20px;
             background-color: #121212;
             border-radius: 10px;
@@ -86,6 +96,7 @@
             font-weight: bold;
             transition: transform 0.3s, color 0.3s;
             cursor: pointer;
+            word-wrap: break-word; /* Ensure file names wrap if they leave the border */
         }
         .folder-link:hover, .document-link:hover, .back-button:hover {
             text-decoration: underline;
@@ -204,7 +215,6 @@
     </style>
 </head>
 <body>
-    <h1 id="page-title">Login</h1>
     <div class="login-container fade-in" id="login-container">
         <form id="login-form">
             <label for="username">Username:</label>
