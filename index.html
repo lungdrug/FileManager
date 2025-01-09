@@ -41,8 +41,8 @@
             color: #fff;
             transition: all 0.3s ease;
         }
-        .login-container input[type="password"]:focus,
-        .content-container input[type="password"]:focus {
+        .login-container input[type="text"]:focus,
+        .login-container input[type="password"]:focus {
             animation: glowing 1.5s infinite;
         }
         @keyframes glowing {
@@ -61,11 +61,33 @@
             color: #000;
             font-weight: bold;
             cursor: pointer;
+            overflow: hidden;
+            position: relative;
             transition: background-color 0.3s ease;
+        }
+        .login-container input[type="submit"]::after {
+            content: '';
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255,255,255,0.5) 10%, transparent 10.01%);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            opacity: 0;
+            transition: all 0.5s;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .login-container input[type="submit"]:active::after {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(0);
+            transition: 0s;
         }
         .login-container input[type="submit"]:hover,
         .content-container input[type="submit"]:hover {
             background-color: #cccccc;
+        }
+        .login-container input[type="checkbox"] {
+            margin-right: 10px;
         }
         .status-message {
             text-align: center;
@@ -144,6 +166,40 @@
                 opacity: 1;
             }
         }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .header .username {
+            cursor: pointer;
+            position: relative;
+            animation: glowing 1.5s infinite;
+        }
+        .header .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #121212;
+            box-shadow: 0 0 10px #ffffff;
+            border-radius: 5px;
+        }
+        .header .dropdown a {
+            display: block;
+            padding: 10px;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .header .dropdown a:hover {
+            background-color: #1c1c1c;
+        }
+        .header .username:hover .dropdown {
+            display: block;
+        }
         footer {
             text-align: center;
             margin-top: 20px;
@@ -161,9 +217,22 @@
             <input type="text" id="username" name="username" required>
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
+            <div>
+                <input type="checkbox" id="remember-me" name="remember-me">
+                <label for="remember-me">Remember Me</label>
+            </div>
             <input type="submit" value="Login">
         </form>
         <div class="status-message" id="status-message"></div>
+    </div>
+    <div class="header" id="header" style="display: none;">
+        <div class="logo">My Website</div>
+        <div class="username">
+            <span id="username-display"></span>
+            <div class="dropdown">
+                <a href="#" id="logout-button">Logout</a>
+            </div>
+        </div>
     </div>
     <div class="content-container" id="content-container" style="display: none;">
         <div class="welcome-message" id="welcome-message"></div>
@@ -177,8 +246,7 @@
     <script>
         const storedUsername = 'lungdrug';
         const storedPasswordHash = 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569';
-        const storedPatHash = 'a0b0a3d0caf5e17d8c8f5f21cce6291a8ff8f6d6a9c9c5a5a2a6a2a2a2a2a2a2'; // Replace with the SHA-256 hash of your PAT
-        let currentPat = '';
+        const storedPatHash = '392a4a3ed417b3ff47e3a3480823ff2ef4f89aa0e022bd7b663c07e04831a715';
         let allDocuments = [];
         let currentPath = '';
 
@@ -196,25 +264,52 @@
 
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
-            const pat = prompt('Please enter your Personal Access Token (PAT):');
+            const rememberMe = document.getElementById('remember-me').checked;
             const encryptedPassword = await sha256(password);
-            const encryptedPat = await sha256(pat);
 
             const statusMessage = document.getElementById('status-message');
             const welcomeMessage = document.getElementById('welcome-message');
-            if (username === storedUsername && encryptedPassword === storedPasswordHash && encryptedPat === storedPatHash) {
-                currentPat = pat;
-                statusMessage.textContent = 'Login successful!';
-                statusMessage.style.color = '#ffffff';
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('page-title').textContent = 'Download Documents';
-                document.getElementById('content-container').style.display = 'block';
-                welcomeMessage.textContent = `Welcome, ${username}!`;
-                loadFolder(); // Load the document contents after successful login
+            if (username === storedUsername && encryptedPassword === storedPasswordHash) {
+                const encryptedPat = await sha256(pat);
+                if (encryptedPat === storedPatHash) {
+                    if (rememberMe) {
+                        localStorage.setItem('username', username);
+                        localStorage.setItem('password', encryptedPassword);
+                    }
+                    statusMessage.textContent = 'Login successful!';
+                    statusMessage.style.color = '#ffffff';
+                    document.getElementById('login-container').style.display = 'none';
+                    document.getElementById('page-title').textContent = 'Download Documents';
+                    document.getElementById('content-container').style.display = 'block';
+                    document.getElementById('header').style.display = 'flex';
+                    document.getElementById('username-display').textContent = username;
+                    welcomeMessage.textContent = `Welcome, ${username}!`;
+                    loadFolder(); // Load the document contents after successful login
+                } else {
+                    statusMessage.textContent = 'Invalid PAT!';
+                    statusMessage.style.color = '#ff0000';
+                }
             } else {
-                statusMessage.textContent = 'Invalid username, password, or PAT!';
+                statusMessage.textContent = 'Invalid username or password!';
                 statusMessage.style.color = '#ff0000';
             }
+        });
+
+        // Check if user is remembered
+        window.addEventListener('load', () => {
+            const rememberedUsername = localStorage.getItem('username');
+            const rememberedPassword = localStorage.getItem('password');
+            if (rememberedUsername && rememberedPassword) {
+                document.getElementById('username').value = rememberedUsername;
+                document.getElementById('password').value = rememberedPassword;
+                document.getElementById('remember-me').checked = true;
+            }
+        });
+
+        document.getElementById('logout-button').addEventListener('click', () => {
+            localStorage.removeItem('username');
+            localStorage.removeItem('password');
+            location.reload();
         });
 
         const repoOwner = 'lungdrug';
@@ -229,7 +324,7 @@
             console.log(`Fetching contents from: ${url}`);
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': `token ${currentPat}`
+                    'Authorization': `token ${pat}`
                 }
             });
             if (!response.ok) {
