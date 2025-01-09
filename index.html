@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website with Login and Settings</title>
+    <title>Website with Login</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -29,7 +29,7 @@
             border-right: .15em solid #ffffff;
             animation: typing 4s steps(30, end), blink-caret .75s step-end infinite;
         }
-        .login-container, .content-container, .settings-container {
+        .login-container, .content-container {
             max-width: 400px;
             margin: 20px auto;
             padding: 20px;
@@ -40,7 +40,6 @@
         }
         .login-container input[type="text"],
         .login-container input[type="password"],
-        .settings-container input[type="password"],
         .content-container input[type="text"],
         .content-container input[type="password"] {
             width: 100%;
@@ -54,7 +53,6 @@
             box-sizing: border-box; /* Ensure input elements are inside the border */
         }
         .login-container input[type="submit"],
-        .settings-container input[type="submit"],
         .content-container input[type="submit"], .content-container input[type="search"] {
             width: 100%;
             padding: 10px;
@@ -71,7 +69,6 @@
             box-sizing: border-box; /* Ensure input elements are inside the border */
         }
         .login-container input[type="submit"]:hover,
-        .settings-container input[type="submit"]:hover,
         .content-container input[type="submit"]:hover {
             background-color: #cccccc;
         }
@@ -180,7 +177,6 @@
         .header .dropdown a:hover {
             background-color: #333;
         }
-        .header .username:focus-within .dropdown,
         .header .username:hover .dropdown {
             display: block;
             opacity: 1;
@@ -238,7 +234,6 @@
         <div class="username">
             <span id="username-display"></span>
             <div class="dropdown">
-                <a href="#" id="settings-button">Settings</a>
                 <a href="#" id="logout-button">Logout</a>
             </div>
         </div>
@@ -254,33 +249,25 @@
         <a class="back-button" id="back-button" style="display: none;">← Back</a>
         <div id="document-sections"></div>
     </div>
-    <div class="settings-container fade-in" id="settings-container" style="display: none;">
-        <form id="settings-form">
-            <label for="new-password">New Password:</label>
-            <input type="password" id="new-password" name="new-password" required>
-            <input type="submit" value="Change Password">
-        </form>
-        <div class="status-message fade-in" id="settings-status-message"></div>
-        <p>If you want to change your GitHub password, please use the following link:</p>
-        <a href="https://github.com/password_reset" target="_blank">Change your password on GitHub</a>
-    </div>
     <div class="rain"></div>
     <footer>@lungdrug</footer>
-    <script type="module">
-        const accounts = {
-            lungdrug: {
-                passwordHash: 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569'
+    <script>
+        const storedUsername = 'lungdrug';
+        const storedPasswordHash = 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569';
+        let allDocuments = [];
+        let currentPath = '';
+        let currentRepo = 'repo1';
+
+        const repos = {
+            repo1: {
+                owner: 'lungdrug',
+                name: 'SW'
+            },
+            repo2: {
+                owner: 'lungdrug',
+                name: 'Funny-Clips'
             }
         };
-
-        // Function to update account password
-        function updatePassword(username, newPasswordHash) {
-            if (accounts[username]) {
-                accounts[username].passwordHash = newPasswordHash;
-                return true;
-            }
-            return false;
-        }
 
         // SHA-256 encryption function
         async function sha256(message) {
@@ -301,7 +288,7 @@
 
             const statusMessage = document.getElementById('status-message');
             const welcomeMessage = document.getElementById('welcome-message');
-            if (accounts[username] && encryptedPassword === accounts[username].passwordHash) {
+            if (username === storedUsername && encryptedPassword === storedPasswordHash) {
                 if (rememberMe) {
                     localStorage.setItem('username', username);
                     localStorage.setItem('password', encryptedPassword);
@@ -336,29 +323,6 @@
             localStorage.removeItem('username');
             localStorage.removeItem('password');
             location.reload();
-        });
-
-        document.getElementById('settings-button').addEventListener('click', (e) => {
-            e.preventDefault();
-            showSettings();
-        });
-
-        document.getElementById('settings-form').addEventListener('submit', async function (event) {
-            event.preventDefault();
-
-            const username = localStorage.getItem('username');
-            const newPassword = document.getElementById('new-password').value;
-            const newPasswordHash = await sha256(newPassword);
-
-            const settingsStatusMessage = document.getElementById('settings-status-message');
-            if (updatePassword(username, newPasswordHash)) {
-                settingsStatusMessage.textContent = 'Password changed successfully!';
-                settingsStatusMessage.style.color = '#ffffff';
-                localStorage.setItem('password', newPasswordHash);
-            } else {
-                settingsStatusMessage.textContent = 'Failed to change password!';
-                settingsStatusMessage.style.color = '#ff0000';
-            }
         });
 
         document.querySelectorAll('.tab-button').forEach(button => {
@@ -467,16 +431,6 @@
                     link.style.display = 'none';
                 }
             }
-        }
-
-        function showSettings() {
-            document.getElementById('content-container').style.display = 'none';
-            document.getElementById('settings-container').style.display = 'block';
-        }
-
-        function hideSettings() {
-            document.getElementById('settings-container').style.display = 'none';
-            document.getElementById('content-container').style.display = 'block';
         }
     </script>
 </body>
