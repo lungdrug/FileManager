@@ -281,6 +281,7 @@
         const storedUsername = 'lungdrug';
         const storedPasswordHash = 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569';
         const storedPatHash = '392a4a3ed417b3ff47e3a3480823ff2ef4f89aa0e022bd7b663c07e04831a715';
+        const pat = 'YOUR_PERSONAL_ACCESS_TOKEN_HERE'; // Replace with your actual PAT
         let allDocuments = [];
         let currentPath = '';
         let currentRepo = 'repo1';
@@ -374,7 +375,7 @@
             console.log(`Fetching contents from: ${url}`);
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': `token ${await getDecryptedPAT()}`
+                    'Authorization': `token ${pat}`
                 }
             });
             if (!response.ok) {
@@ -383,18 +384,6 @@
             }
             const data = await response.json();
             return data;
-        }
-
-        async function getDecryptedPAT() {
-            // In a real-world scenario, you would fetch the PAT from a secure server
-            // Here we use a placeholder since we can't decrypt SHA-256
-            const plainTextPAT = 'YOUR_PERSONAL_ACCESS_TOKEN_HERE';
-            const encryptedPat = await sha256(plainTextPAT);
-            if (encryptedPat === storedPatHash) {
-                return plainTextPAT;
-            } else {
-                throw new Error('Invalid PAT');
-            }
         }
 
         async function loadFolder(path = '') {
