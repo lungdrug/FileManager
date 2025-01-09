@@ -55,7 +55,7 @@
             background-color: #1c1c1c;
             color: #fff;
             transition: all 0.3s ease;
-            box-sizing: border-box; /* Ensure input elements are inside the border */
+            box-sizing: border-box;
         }
         .login-container input[type="submit"],
         .content-container input[type="submit"], .content-container input[type="search"] {
@@ -71,7 +71,7 @@
             overflow: hidden;
             position: relative;
             transition: background-color 0.3s ease;
-            box-sizing: border-box; /* Ensure input elements are inside the border */
+            box-sizing: border-box;
         }
         .login-container input[type="submit"]:hover,
         .content-container input[type="submit"]:hover {
@@ -101,7 +101,7 @@
             font-weight: bold;
             transition: transform 0.3s, color 0.3s;
             cursor: pointer;
-            word-wrap: break-word; /* Ensure file names wrap if they leave the border */
+            word-wrap: break-word;
         }
         .folder-link:hover, .document-link:hover, .back-button:hover {
             text-decoration: underline;
@@ -217,23 +217,6 @@
             color: #ffffff;
             animation: fadeIn 1s ease-in-out;
         }
-        .admin-menu {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px;
-            background-color: #333;
-            border-radius: 10px;
-        }
-        .admin-menu button {
-            background-color: #ff4444;
-            color: white;
-            padding: 10px;
-            border: none;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
@@ -261,7 +244,6 @@
             <div class="dropdown">
                 <a href="#" id="logout-button">Logout</a>
                 <a href="#" id="settings-button">Settings</a>
-                <a href="#" id="admin-button" style="display: none;">Admin</a>
             </div>
         </div>
     </div>
@@ -278,16 +260,9 @@
     </div>
     <div class="rain"></div>
     <footer>@lungdrug</footer>
-
-    <!-- Admin Menu -->
-    <div class="admin-menu" id="admin-menu">
-        <h2>Admin Menu</h2>
-        <button id="assign-permissions">Assign Permissions</button>
-    </div>
-
     <script>
         const storedUsername = 'lungdrug';
-        const storedPasswordHash = 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569'; // hash for "password"
+        const storedPasswordHash = 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569';
         let allDocuments = [];
         let currentPath = '';
         let currentRepo = 'repo1';
@@ -303,13 +278,6 @@
             }
         };
 
-        // Permissions for users
-        const userPermissions = {
-            lungdrug: ['repo1', 'repo2'],
-            user1: ['repo1']
-        };
-
-        // SHA-256 encryption function
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -342,54 +310,48 @@
                 document.getElementById('tab-menu').style.display = 'flex';
                 document.getElementById('username-display').textContent = username;
                 welcomeMessage.textContent = `Welcome, ${username}!`;
-                loadFolder(); // Load the document contents after successful login
-
-                // Show Admin button for lungdrug user only
-                if (username === 'lungdrug') {
-                    document.getElementById('admin-button').style.display = 'inline';
-                }
+                loadFolder();
             } else {
                 statusMessage.textContent = 'Invalid username or password!';
                 statusMessage.style.color = '#ff0000';
             }
         });
 
-        // Check if user is remembered
-        window.addEventListener('load', () => {
-            const rememberedUsername = localStorage.getItem('username');
-            const rememberedPassword = localStorage.getItem('password');
-            if (rememberedUsername && rememberedPassword) {
-                document.getElementById('username').value = rememberedUsername;
-                document.getElementById('password').value = rememberedPassword;
-                document.getElementById('remember-me').checked = true;
-            }
-        });
+        async function loadFolder() {
+            // Simulate loading documents from a repository
+            allDocuments = [
+                { title: 'Document 1', link: '#document1' },
+                { title: 'Document 2', link: '#document2' },
+                { title: 'Document 3', link: '#document3' }
+            ];
+            displayDocuments();
+        }
 
-        document.getElementById('logout-button').addEventListener('click', () => {
-            localStorage.removeItem('username');
-            localStorage.removeItem('password');
-            location.reload();
-        });
-
-        document.getElementById('settings-button').addEventListener('click', () => {
-            alert('Settings page coming soon.');
-        });
-
-        document.getElementById('admin-button').addEventListener('click', () => {
-            document.getElementById('admin-menu').style.display = 'block';
-        });
-
-        document.getElementById('assign-permissions').addEventListener('click', () => {
-            alert('Assign permissions functionality coming soon.');
-        });
-
-        document.querySelectorAll('.tab-button').forEach(button => {
-            button.addEventListener('click', () => {
-                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                currentRepo = button.getAttribute('data-repo');
-                switchRepo();
+        function displayDocuments() {
+            const documentSections = document.getElementById('document-sections');
+            documentSections.innerHTML = '';
+            allDocuments.forEach(doc => {
+                const documentLink = document.createElement('a');
+                documentLink.href = doc.link;
+                documentLink.classList.add('document-link');
+                documentLink.textContent = doc.title;
+                documentSections.appendChild(documentLink);
             });
-        });
+        }
 
-        const documentSections = document.getElementById
+        function filterDocuments() {
+            const query = document.getElementById('search-bar').value.toLowerCase();
+            const filteredDocs = allDocuments.filter(doc => doc.title.toLowerCase().includes(query));
+            const documentSections = document.getElementById('document-sections');
+            documentSections.innerHTML = '';
+            filteredDocs.forEach(doc => {
+                const documentLink = document.createElement('a');
+                documentLink.href = doc.link;
+                documentLink.classList.add('document-link');
+                documentLink.textContent = doc.title;
+                documentSections.appendChild(documentLink);
+            });
+        }
+    </script>
+</body>
+</html>
