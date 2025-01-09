@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website with Login</title>
+    <title>Website with Login and Settings</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -40,9 +40,9 @@
         }
         .login-container input[type="text"],
         .login-container input[type="password"],
+        .settings-container input[type="password"],
         .content-container input[type="text"],
-        .content-container input[type="password"],
-        .settings-container input[type="password"] {
+        .content-container input[type="password"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -54,9 +54,8 @@
             box-sizing: border-box; /* Ensure input elements are inside the border */
         }
         .login-container input[type="submit"],
-        .content-container input[type="submit"],
-        .content-container input[type="search"], 
-        .settings-container input[type="submit"] {
+        .settings-container input[type="submit"],
+        .content-container input[type="submit"], .content-container input[type="search"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -72,8 +71,8 @@
             box-sizing: border-box; /* Ensure input elements are inside the border */
         }
         .login-container input[type="submit"]:hover,
-        .content-container input[type="submit"]:hover,
-        .settings-container input[type="submit"]:hover {
+        .settings-container input[type="submit"]:hover,
+        .content-container input[type="submit"]:hover {
             background-color: #cccccc;
         }
         .login-container input[type="checkbox"] {
@@ -181,7 +180,8 @@
         .header .dropdown a:hover {
             background-color: #333;
         }
-        .header .username.active .dropdown {
+        .header .username:focus-within .dropdown,
+        .header .username:hover .dropdown {
             display: block;
             opacity: 1;
             transform: translateY(0);
@@ -235,7 +235,7 @@
     </div>
     <div class="header" id="header" style="display: none;">
         <div class="logo">lungdrug's storage site</div>
-        <div class="username" id="username-container">
+        <div class="username">
             <span id="username-display"></span>
             <div class="dropdown">
                 <a href="#" id="settings-button">Settings</a>
@@ -258,31 +258,29 @@
         <form id="settings-form">
             <label for="new-password">New Password:</label>
             <input type="password" id="new-password" name="new-password" required>
-            <label for="confirm-password">Confirm Password:</label>
-            <input type="password" id="confirm-password" name="confirm-password" required>
             <input type="submit" value="Change Password">
         </form>
         <div class="status-message fade-in" id="settings-status-message"></div>
+        <p>If you want to change your GitHub password, please use the following link:</p>
+        <a href="https://github.com/password_reset" target="_blank">Change your password on GitHub</a>
     </div>
     <div class="rain"></div>
     <footer>@lungdrug</footer>
-    <script>
-        const storedUsername = 'lungdrug';
-        let storedPasswordHash = 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569';
-        let allDocuments = [];
-        let currentPath = '';
-        let currentRepo = 'repo1';
-
-        const repos = {
-            repo1: {
-                owner: 'lungdrug',
-                name: 'SW'
-            },
-            repo2: {
-                owner: 'lungdrug',
-                name: 'Funny-Clips'
+    <script type="module">
+        const accounts = {
+            lungdrug: {
+                passwordHash: 'cd564d37d67d792d383f623646f95909455156d28cf7927826f2f1f0717dc569'
             }
         };
+
+        // Function to update account password
+        function updatePassword(username, newPasswordHash) {
+            if (accounts[username]) {
+                accounts[username].passwordHash = newPasswordHash;
+                return true;
+            }
+            return false;
+        }
 
         // SHA-256 encryption function
         async function sha256(message) {
@@ -303,7 +301,7 @@
 
             const statusMessage = document.getElementById('status-message');
             const welcomeMessage = document.getElementById('welcome-message');
-            if (username === storedUsername && encryptedPassword === storedPasswordHash) {
+            if (accounts[username] && encryptedPassword === accounts[username].passwordHash) {
                 if (rememberMe) {
                     localStorage.setItem('username', username);
                     localStorage.setItem('password', encryptedPassword);
@@ -340,30 +338,27 @@
             location.reload();
         });
 
-        document.getElementById('settings-button').addEventListener('click', () => {
-            document.getElementById('content-container').style.display = 'none';
-            document.getElementById('settings-container').style.display = 'block';
+        document.getElementById('settings-button').addEventListener('click', (e) => {
+            e.preventDefault();
+            showSettings();
         });
 
         document.getElementById('settings-form').addEventListener('submit', async function (event) {
             event.preventDefault();
 
+            const username = localStorage.getItem('username');
             const newPassword = document.getElementById('new-password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
+            const newPasswordHash = await sha256(newPassword);
+
             const settingsStatusMessage = document.getElementById('settings-status-message');
-
-            if (newPassword !== confirmPassword) {
-                settingsStatusMessage.textContent = 'Passwords do not match!';
+            if (updatePassword(username, newPasswordHash)) {
+                settingsStatusMessage.textContent = 'Password changed successfully!';
+                settingsStatusMessage.style.color = '#ffffff';
+                localStorage.setItem('password', newPasswordHash);
+            } else {
+                settingsStatusMessage.textContent = 'Failed to change password!';
                 settingsStatusMessage.style.color = '#ff0000';
-                return;
             }
-
-            const newEncryptedPassword = await sha256(newPassword);
-            storedPasswordHash = newEncryptedPassword;
-
-            localStorage.setItem('password', newEncryptedPassword);
-            settingsStatusMessage.textContent = 'Password changed successfully!';
-            settingsStatusMessage.style.color = '#ffffff';
         });
 
         document.querySelectorAll('.tab-button').forEach(button => {
@@ -474,22 +469,15 @@
             }
         }
 
-        document.getElementById('username-container').addEventListener('click', () => {
-            const dropdown = document.querySelector('.dropdown');
-            if (dropdown.style.display === 'block') {
-                dropdown.style.opacity = 0;
-                dropdown.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    dropdown.style.display = 'none';
-                }, 300);
-            } else {
-                dropdown.style.display = 'block';
-                setTimeout(() => {
-                    dropdown.style.opacity = 1;
-                    dropdown.style.transform = 'translateY(0)';
-                }, 10);
-            }
-        });
+        function showSettings() {
+            document.getElementById('content-container').style.display = 'none';
+            document.getElementById('settings-container').style.display = 'block';
+        }
+
+        function hideSettings() {
+            document.getElementById('settings-container').style.display = 'none';
+            document.getElementById('content-container').style.display = 'block';
+        }
     </script>
 </body>
 </html>
