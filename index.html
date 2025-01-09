@@ -10,13 +10,11 @@
         /* Additional CSS for admin menu */
         .admin-menu {
             display: none;
-            max-width: 400px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #121212;
-            border-radius: 10px;
-            box-shadow: 0 0 10px #ffffff;
-            animation: fadeIn 1s ease-in-out;
+            background-color: #1c1c1c;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            margin-top: 10px;
         }
         .admin-menu h2 {
             margin-bottom: 20px;
@@ -70,6 +68,19 @@
             <span id="username-display"></span>
             <div class="dropdown">
                 <a href="#" id="logout-button">Logout</a>
+                <div class="admin-menu" id="admin-menu">
+                    <h2>Admin Menu</h2>
+                    <div>
+                        <label for="user-permissions">Enter Username and Repo (username:repo):</label>
+                        <input type="text" id="user-permissions" placeholder="e.g., user1:repo1">
+                        <button id="add-permission">Add Permission</button>
+                        <button id="remove-permission">Remove Permission</button>
+                    </div>
+                    <div id="permissions-list">
+                        <h3>Current Permissions:</h3>
+                        <ul id="permissions-ul"></ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -83,20 +94,6 @@
         <input type="search" id="search-bar" placeholder="Search documents..." oninput="filterDocuments()">
         <a class="back-button" id="back-button" style="display: none;">← Back</a>
         <div id="document-sections"></div>
-    </div>
-    <!-- Admin Menu -->
-    <div class="admin-menu" id="admin-menu">
-        <h2>Admin Menu</h2>
-        <div>
-            <label for="user-permissions">Enter Username and Repo (username:repo):</label>
-            <input type="text" id="user-permissions" placeholder="e.g., user1:repo1">
-            <button id="add-permission">Add Permission</button>
-            <button id="remove-permission">Remove Permission</button>
-        </div>
-        <div id="permissions-list">
-            <h3>Current Permissions:</h3>
-            <ul id="permissions-ul"></ul>
-        </div>
     </div>
     <div class="rain"></div>
     <footer>@lungdrug</footer>
