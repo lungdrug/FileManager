@@ -3,23 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Website with Login</title>
+    <title>lungdrug's storage site</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        /* Your existing CSS styles */
-        /* Additional CSS for admin menu */
-        .admin-menu {
-            display: none;
-            background-color: #1c1c1c;
-            padding: 10px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
-            margin-top: 10px;
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden;
         }
-        .admin-menu h2 {
-            margin-bottom: 20px;
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            animation: fadeIn 1s ease-in-out;
         }
-        .admin-menu input[type="text"] {
+        .login-container, .content-container {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #121212;
+            border-radius: 10px;
+            box-shadow: 0 0 10px #ffffff;
+            animation: slideIn 1s ease-in-out;
+        }
+        .login-container input[type="text"],
+        .login-container input[type="password"],
+        .content-container input[type="text"],
+        .content-container input[type="password"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -28,9 +40,18 @@
             background-color: #1c1c1c;
             color: #fff;
             transition: all 0.3s ease;
-            box-sizing: border-box;
         }
-        .admin-menu button {
+        .login-container input[type="text"]:focus,
+        .login-container input[type="password"]:focus {
+            animation: glowing 1.5s infinite;
+        }
+        @keyframes glowing {
+            0% { box-shadow: 0 0 5px #ffffff; }
+            50% { box-shadow: 0 0 20px #ffffff; }
+            100% { box-shadow: 0 0 5px #ffffff; }
+        }
+        .login-container input[type="submit"],
+        .content-container input[type="submit"], .content-container input[type="search"] {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -40,15 +61,187 @@
             color: #000;
             font-weight: bold;
             cursor: pointer;
+            overflow: hidden;
+            position: relative;
             transition: background-color 0.3s ease;
         }
-        .admin-menu button:hover {
+        .login-container input[type="submit"]::after {
+            content: '';
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255,255,255,0.5) 10%, transparent 10.01%);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            opacity: 0;
+            transition: all 0.5s;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .login-container input[type="submit"]:active::after {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(0);
+            transition: 0s;
+        }
+        .login-container input[type="submit"]:hover,
+        .content-container input[type="submit"]:hover {
             background-color: #cccccc;
+        }
+        .login-container input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .status-message {
+            text-align: center;
+            margin: 20px 0;
+            color: #ffffff;
+            animation: fadeIn 1s ease-in-out;
+        }
+        .welcome-message {
+            text-align: center;
+            margin: 20px 0;
+            color: #ffffff;
+            font-size: 1.2em;
+            animation: fadeIn 1s ease-in-out;
+        }
+        .folder-link, .document-link, .back-button {
+            display: block;
+            margin: 10px 0;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.3s, color 0.3s;
+            cursor: pointer;
+        }
+        .folder-link:hover, .document-link:hover, .back-button:hover {
+            text-decoration: underline;
+            transform: scale(1.1);
+            color: #cccccc;
+        }
+        .rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            background: url('rain.png') repeat top center;
+            animation: rain 0.5s linear infinite;
+        }
+        @keyframes rain {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 0 100%;
+            }
+        }
+        .fly-in {
+            animation: fly-in 1s ease-in-out;
+        }
+        @keyframes fly-in {
+            from {
+                transform: translateX(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #121212;
+            color: #ffffff;
+        }
+        .header .username {
+            cursor: pointer;
+            position: relative;
+            animation: glowing 1.5s infinite;
+        }
+        .header .dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: #121212;
+            box-shadow: 0 0 10px #ffffff;
+            border-radius: 5px;
+        }
+        .header .dropdown a {
+            display: block;
+            padding: 10px;
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .header .dropdown a:hover {
+            background-color: #1c1c1c;
+        }
+        .header .username:hover .dropdown {
+            display: block;
+        }
+        .tab-menu {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .tab-menu button {
+            background-color: #121212;
+            color: #ffffff;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 0 5px;
+            transition: background-color 0.3s ease;
+        }
+        .tab-menu button:hover {
+            background-color: #1c1c1c;
+        }
+        .tab-menu button.active {
+            background-color: #ffffff;
+            color: #000;
+        }
+        .content-container {
+            transition: opacity 0.5s ease-in-out;
+        }
+        .content-container.fade-out {
+            opacity: 0;
+        }
+        .content-container.fade-in {
+            opacity: 1;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #121212;
+            color: #ffffff;
         }
     </style>
 </head>
 <body>
-    <div class="login-container fade-in" id="login-container">
+    <h1 id="page-title">Login</h1>
+    <div class="login-container fly-in" id="login-container">
         <form id="login-form">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
@@ -60,7 +253,7 @@
             </div>
             <input type="submit" value="Login">
         </form>
-        <div class="status-message fade-in" id="status-message"></div>
+        <div class="status-message" id="status-message"></div>
     </div>
     <div class="header" id="header" style="display: none;">
         <div class="logo">lungdrug's storage site</div>
@@ -68,19 +261,6 @@
             <span id="username-display"></span>
             <div class="dropdown">
                 <a href="#" id="logout-button">Logout</a>
-                <div class="admin-menu" id="admin-menu">
-                    <h2>Admin Menu</h2>
-                    <div>
-                        <label for="user-permissions">Enter Username and Repo (username:repo):</label>
-                        <input type="text" id="user-permissions" placeholder="e.g., user1:repo1">
-                        <button id="add-permission">Add Permission</button>
-                        <button id="remove-permission">Remove Permission</button>
-                    </div>
-                    <div id="permissions-list">
-                        <h3>Current Permissions:</h3>
-                        <ul id="permissions-ul"></ul>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -88,7 +268,7 @@
         <button class="tab-button active" data-repo="repo1">School Work</button>
         <button class="tab-button" data-repo="repo2">Clips</button>
     </div>
-    <div class="content-container fade-in" id="content-container" style="display: none;">
+    <div class="content-container" id="content-container" style="display: none;">
         <div class="welcome-message" id="welcome-message"></div>
         <div id="loading-message" class="loading-message">Loading documents, please wait...</div>
         <input type="search" id="search-bar" placeholder="Search documents..." oninput="filterDocuments()">
@@ -103,10 +283,6 @@
         let allDocuments = [];
         let currentPath = '';
         let currentRepo = 'repo1';
-        const permissions = {
-            'lungdrug': ['repo1', 'repo2']
-            // Add permissions here, e.g., 'user1': ['repo1'], 'user2': ['repo2']
-        };
 
         const repos = {
             repo1: {
@@ -119,6 +295,7 @@
             }
         };
 
+        // SHA-256 encryption function
         async function sha256(message) {
             const msgBuffer = new TextEncoder().encode(message);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -145,21 +322,20 @@
                 statusMessage.textContent = 'Login successful!';
                 statusMessage.style.color = '#ffffff';
                 document.getElementById('login-container').style.display = 'none';
+                document.getElementById('page-title').textContent = 'Download Documents';
                 document.getElementById('content-container').style.display = 'block';
                 document.getElementById('header').style.display = 'flex';
                 document.getElementById('tab-menu').style.display = 'flex';
                 document.getElementById('username-display').textContent = username;
                 welcomeMessage.textContent = `Welcome, ${username}!`;
-                if (username === storedUsername) {
-                    document.getElementById('admin-menu').style.display = 'block';
-                }
-                loadFolder(); 
+                loadFolder(); // Load the document contents after successful login
             } else {
                 statusMessage.textContent = 'Invalid username or password!';
                 statusMessage.style.color = '#ff0000';
             }
         });
 
+        // Check if user is remembered
         window.addEventListener('load', () => {
             const rememberedUsername = localStorage.getItem('username');
             const rememberedPassword = localStorage.getItem('password');
@@ -205,14 +381,10 @@
         }
 
         async function loadFolder(path = '') {
-            if (!checkPermissions(currentRepo)) {
-                showStatusMessage('You do not have permission to access this repository.');
-                return;
-            }
             showLoading(true);
             try {
                 const contents = await fetchContents(path);
-                contents.sort((a, b) => a.name.localeCompare(b.name));
+                contents.sort((a, b) => a.name.localeCompare(b.name)); // Sort by name
                 console.log(`Contents of ${path || 'root'}:`, contents);
                 allDocuments = contents;
                 documentSections.innerHTML = '';
@@ -287,51 +459,6 @@
                 }
             }
         }
-
-        document.getElementById('add-permission').addEventListener('click', () => {
-            const userPermissionsInput = document.getElementById('user-permissions').value;
-            const [username, repo] = userPermissionsInput.split(':');
-            if (username && repo && repos[repo]) {
-                if (!permissions[username]) {
-                    permissions[username] = [];
-                }
-                permissions[username].push(repo);
-                updatePermissionsList();
-            } else {
-                alert('Invalid input or repository does not exist.');
-            }
-        });
-
-        document.getElementById('remove-permission').addEventListener('click', () => {
-            const userPermissionsInput = document.getElementById('user-permissions').value;
-            const [username, repo] = userPermissionsInput.split(':');
-            if (username && repo && permissions[username]) {
-                permissions[username] = permissions[username].filter(r => r !== repo);
-                updatePermissionsList();
-            } else {
-                alert('Invalid input or user does not have permission for this repository.');
-            }
-        });
-
-        function updatePermissionsList() {
-            const permissionsUl = document.getElementById('permissions-ul');
-            permissionsUl.innerHTML = '';
-            for (const [username, repos] of Object.entries(permissions)) {
-                repos.forEach(repo => {
-                    const li = document.createElement('li');
-                    li.textContent = `${username}: ${repo}`;
-                    permissionsUl.appendChild(li);
-                });
-            }
-        }
-
-        function checkPermissions(repo) {
-            const username = document.getElementById('username-display').textContent;
-            return permissions[username] && permissions[username].includes(repo);
-        }
-
-        // Initialize permissions list on page load
-        updatePermissionsList();
     </script>
 </body>
 </html>
